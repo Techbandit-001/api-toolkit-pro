@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>API Toolkit Pro</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: "Segoe UI", sans-serif;
+        background: #0b1220;
+        color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .app {
+        width: 460px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    h1 {
+        font-size: 20px;
+        margin-bottom: 5px;
+    }
+
+    .sub {
+        font-size: 12px;
+        opacity: 0.6;
+        margin-bottom: 15px;
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+        margin: 6px 0;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: 0.2s;
+    }
+
+    button:hover {
+        transform: scale(1.02);
+    }
+
+    .joke { background: #3b82f6; color: white; }
+    .quote { background: #8b5cf6; color: white; }
+    .copy { background: #10b981; color: white; }
+    .clear { background: #ef4444; color: white; }
+
+    .box {
+        margin-top: 12px;
+        padding: 14px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 10px;
+        min-height: 90px;
+        font-size: 14px;
+        white-space: pre-line;
+    }
+
+    .history {
+        margin-top: 10px;
+        font-size: 11px;
+        opacity: 0.6;
+        max-height: 100px;
+        overflow-y: auto;
+    }
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+    <h1>🚀 API Toolkit Pro</h1>
+    <div class="sub">Production-level demo (JS + APIs + UX)</div>
+
+    <button class="joke" onclick="getJoke()">😂 Get Joke</button>
+    <button class="quote" onclick="getQuote()">💬 Get Quote</button>
+    <button class="copy" onclick="copyText()">📋 Copy Output</button>
+    <button class="clear" onclick="clearAll()">🧹 Clear</button>
+
+    <div class="box" id="output">Ready...</div>
+
+    <div class="history" id="history"></div>
+</div>
+
+<script>
+
+let lastOutput = "";
+
+function setLoading(msg) {
+    document.getElementById("output").innerText = msg;
+}
+
+function addHistory(text) {
+    const h = document.getElementById("history");
+    const time = new Date().toLocaleTimeString();
+    h.innerHTML = `[${time}] ${text}<br>` + h.innerHTML;
+}
+
+async function fetchWithTimeout(url, timeout = 5000) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+
+    try {
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(id);
+        return res.json();
+    } catch (err) {
+        clearTimeout(id);
+        throw new Error("Request failed or timed out");
+    }
+}
+
+async function getJoke() {
+    try {
+        setLoading("Loading joke... ⏳");
+
+        const data = await fetchWithTimeout("https://official-joke-api.appspot.com/random_joke");
+
+        lastOutput = `🤣 ${data.setup}\n👉 ${data.punchline}`;
+
+        document.getElementById("output").innerText = lastOutput;
+        addHistory("Joke fetched");
+    } catch (err) {
+        document.getElementById("output").innerText = "❌ Error fetching joke";
+    }
+}
+
+async function getQuote() {
+    try {
+        setLoading("Loading quote... ⏳");
+
+        const data = await fetchWithTimeout("https://api.quotable.io/random");
+
+        lastOutput = `💬 ${data.content}\n— ${data.author}`;
+
+        document.getElementById("output").innerText = lastOutput;
+        addHistory("Quote fetched");
+    } catch (err) {
+        document.getElementById("output").innerText = "❌ Error fetching quote";
+    }
+}
+
+function copyText() {
+    if (!lastOutput) return;
+
+    navigator.clipboard.writeText(lastOutput);
+    addHistory("Copied to clipboard");
+}
+
+function clearAll() {
+    lastOutput = "";
+    document.getElementById("output").innerText = "Cleared.";
+}
+
+</script>
+
+</body>
+</html>
